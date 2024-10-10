@@ -168,7 +168,7 @@ def _create_sparse_out_dir(out_path):
             os.remove(old_file)
 
 
-def matrix_sparse(data_dir, regions, output_dir, threads):
+def matrix_sparse(data_dir, regions, output_dir, threads,float_format="%.2g"):
     _check_data_dir(data_dir, assert_smoothed=True)
     _create_sparse_out_dir(output_dir)
     out_mtx_path = os.path.join(output_dir, "matrix.mtx.gz")
@@ -212,8 +212,8 @@ def matrix_sparse(data_dir, regions, output_dir, threads):
                 mat.data,
                 mat.indices,
                 mat.indptr,
-                starts[chunk_start:chunk_end],
-                ends[chunk_start:chunk_end],
+                np.array(starts[chunk_start:chunk_end]),
+                np.array(ends[chunk_start:chunk_end]), # do not pass variable directly; will be modified in-function
                 chrom_len,
                 n_cells,
                 smoothed_vals,
@@ -230,6 +230,7 @@ def matrix_sparse(data_dir, regions, output_dir, threads):
                 mfracs,
                 coverage,
                 region_n_offset=n_processed_regions,
+                float_format=float_format,
             )
             n_processed_regions += chunk_end - chunk_start
 
@@ -239,7 +240,7 @@ def matrix_sparse(data_dir, regions, output_dir, threads):
 
 
 def _write_sparse_mtx_chunk(
-    out_path, row_i, col_i, residuals, mfracs, coverage, region_n_offset=0
+    out_path, row_i, col_i, residuals, mfracs, coverage, region_n_offset=0,float_format="%.2g"
 ):
     df = pd.DataFrame(
         {
@@ -257,7 +258,7 @@ def _write_sparse_mtx_chunk(
         index=False,
         compression="gzip",
         sep=" ",
-        float_format="%.4g",
+        float_format=float_format,
     )
 
 
